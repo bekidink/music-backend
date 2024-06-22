@@ -1,14 +1,20 @@
 const Song = require('../model/song');
-
-// Create a new song
-// exports.createSong = async (req, res) => {
-//     try {
-//         const newSong = await Song.create(req.body);
-//         res.status(201).json(newSong);
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// };
+const Joi = require('joi');
+const { updateSongSchema } = require('../validation/validation');
+const songSchema = Joi.object({
+    artistName: Joi.string().required(),
+    artistImageURL: Joi.string().uri().optional(),
+    albums: Joi.array().items(Joi.object({
+        albumName: Joi.string().required(),
+        albumImageURL: Joi.string().uri().optional(),
+        songs: Joi.array().items(Joi.object({
+            songName: Joi.string().required(),
+            songImageURL: Joi.string().uri().optional(),
+            songURL: Joi.string().uri().required(),
+            category: Joi.string().optional()
+        })).required()
+    })).required()
+});
 
 // Get all songs
 exports.getAllSongs = async (req, res) => {
@@ -65,23 +71,25 @@ exports.getSongById = async (req, res) => {
 // Update a song by ID
 exports.updateSong = async (req, res) => {
     const songId = req.params.id;
-    console.log(req.body,songId)
+
+    // Validate the request body
+    const { error } = updateSongSchema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ success: false, message: error.details[0].message });
+    }
 
     const { artistName, artistImageURL, albumName, albumImageURL, songName, songImageURL, songURL, category } = req.body;
 
     try {
-        // Find the song by song ID
         let song = await Song.findOne({ "albums.songs._id": songId });
 
         if (!song) {
             return res.status(404).json({ message: 'Song not found' });
         }
 
-        // Find the album and the song within the album
         const albumIndex = song.albums.findIndex(album => album.songs.some(song => song._id.toString() === songId));
         const songIndex = song.albums[albumIndex].songs.findIndex(song => song._id.toString() === songId);
 
-        // Update the relevant fields
         if (artistName) song.artistName = artistName;
         if (artistImageURL) song.artistImageURL = artistImageURL;
         if (albumName) song.albums[albumIndex].albumName = albumName;
@@ -91,7 +99,6 @@ exports.updateSong = async (req, res) => {
         if (songURL) song.albums[albumIndex].songs[songIndex].songURL = songURL;
         if (category) song.albums[albumIndex].songs[songIndex].category = category;
 
-        // Save the updated song document
         await song.save();
         res.status(200).json({ success: true, data: song });
     } catch (error) {
@@ -200,6 +207,12 @@ exports.getOverallStatistics = async (req, res) => {
 
 exports.createSong = async (req, res) => {
     const { artistName, artistImageURL, albums } = req.body;
+
+    // Validate the request body
+    const { error } = songSchema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ success: false, message: error.details[0].message });
+    }
 
     try {
         let song = await Song.findOne({ artistName });
