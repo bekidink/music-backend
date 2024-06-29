@@ -1,19 +1,24 @@
 const Song = require('../model/song');
 const Joi = require('joi');
 const { updateSongSchema } = require('../validation/validation');
-const songSchema = Joi.object({
+
+const songValidationSchema = Joi.object({
     artistName: Joi.string().required(),
-    artistImageURL: Joi.string().uri().optional(),
-    albums: Joi.array().items(Joi.object({
-        albumName: Joi.string().required(),
-        albumImageURL: Joi.string().uri().optional(),
-        songs: Joi.array().items(Joi.object({
-            songName: Joi.string().required(),
-            songImageURL: Joi.string().uri().optional(),
-            songURL: Joi.string().uri().required(),
-            category: Joi.string().optional()
-        })).required()
-    })).required()
+    artistImageURL: Joi.string().required(),
+    albums: Joi.array().items(
+        Joi.object({
+            albumName: Joi.string().required(),
+            albumImageURL: Joi.string().required(),
+            songs: Joi.array().items(
+                Joi.object({
+                    songName: Joi.string().required(),
+                    songImageURL: Joi.string().required(),
+                    songURL: Joi.string().required(),
+                    category: Joi.string().valid('Classical', 'Popular', 'Rock','Hip hop','Jazz','Electronic','Folk','Blues').required()
+                })
+            ).required()
+        })
+    ).required()
 });
 
 // Get all songs
@@ -55,18 +60,7 @@ exports.getSongById = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
-// Get a single song by ID
-// exports.getSongById = async (req, res) => {
-//     try {
-//         const song = await Song.findById(req.params.id);
-//         if (!song) {
-//             return res.status(404).json({ message: 'Song not found' });
-//         }
-//         res.status(200).json(song);
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// };
+
 
 // Update a song by ID
 exports.updateSong = async (req, res) => {
@@ -209,7 +203,7 @@ exports.createSong = async (req, res) => {
     const { artistName, artistImageURL, albums } = req.body;
 
     // Validate the request body
-    const { error } = songSchema.validate(req.body);
+    const { error } = songValidationSchema.validate(req.body);
     if (error) {
         return res.status(400).json({ success: false, message: error.details[0].message });
     }
@@ -227,7 +221,14 @@ exports.createSong = async (req, res) => {
             albums.forEach(newAlbum => {
                 const albumIndex = song.albums.findIndex(album => album.albumName === newAlbum.albumName);
                 if (albumIndex > -1) {
-                    song.albums[albumIndex].songs.push(...newAlbum.songs);
+                    newAlbum.songs.forEach(newSong => {
+                        const songIndex = song.albums[albumIndex].songs.findIndex(song => song.songName === newSong.songName);
+                        if (songIndex > -1) {
+                            // Optionally update song details if needed
+                        } else {
+                            song.albums[albumIndex].songs.push(newSong);
+                        }
+                    });
                 } else {
                     song.albums.push(newAlbum);
                 }

@@ -9,7 +9,6 @@ const songSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    
     albums: [{
         albumName: {
             type: String,
@@ -32,10 +31,10 @@ const songSchema = new mongoose.Schema({
                 type: String,
                 required: true
             },
-            
             category: {
                 type: String,
-                required: true
+                required: true,
+                enum: ['Classical', 'Popular', 'Rock','Hip hop','Jazz','Electronic','Folk','Blues'] // Define allowed categories here
             }
         }]
     }]
