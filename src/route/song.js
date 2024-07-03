@@ -4,7 +4,8 @@ const songController = require('../controllers/songController');
 
 // Create a new song
 router.post('/save', songController.createSong);
-
+//search song by title or artist 
+router.get('/search', songController.searchSongs);
 // Get all songs
 router.get('/', songController.getAllSongs);
 

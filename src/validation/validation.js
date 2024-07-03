@@ -1,5 +1,5 @@
 const Joi = require('joi');
-export const updateSongSchema = Joi.object({
+ const updateSongSchema = Joi.object({
     artistName: Joi.string().optional(),
     artistImageURL: Joi.string().uri().optional(),
     albumName: Joi.string().optional(),
@@ -9,3 +9,4 @@ export const updateSongSchema = Joi.object({
     songURL: Joi.string().uri().optional(),
     category: Joi.string().optional()
 })
+exports.module=updateSongSchema
