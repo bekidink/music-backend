@@ -2,8 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const connectDB = require('./config/db');
-const dotenv=require('dotenv')
-const { default: mongoose } = require("mongoose");
+
 app.use(cors());
 app.use(express.json());
 app.get("/", (req, res) => {
