@@ -25,7 +25,7 @@ const updateSongSchema = Joi.object({
         'string.empty': 'Song URL cannot be an empty field',
         'string.uri': 'Song URL must be a valid URI'
     }),
-    category: Joi.string().valid('Classical', 'Popular', 'Rock', 'Hip hop', 'Jazz', 'Electronic', 'Folk', 'Blues').required().messages({
+    category: Joi.string().valid('Classical', 'Popular', 'Rock', 'Hip Hop', 'Jazz', 'Electronic', 'Folk', 'Blues').required().messages({
         'any.required': 'Category is required',
         'any.only': 'Category must be one of Classical, Popular, Rock, Hip hop, Jazz, Electronic, Folk, Blues'
     })
