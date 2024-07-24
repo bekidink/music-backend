@@ -5,20 +5,12 @@ const updateSongSchema = Joi.object({
         'string.base': 'Artist Name should be a type of text',
         'string.empty': 'Artist Name cannot be an empty field'
     }),
-    artistImageURL: Joi.string().uri().optional().messages({
-        'string.base': 'Artist Image URL should be a type of text',
-        'string.empty': 'Artist Image URL cannot be an empty field',
-        'string.uri': 'Artist Image URL must be a valid URI'
-    }),
+    
     albumName: Joi.string().optional().messages({
         'string.base': 'Album Name should be a type of text',
         'string.empty': 'Album Name cannot be an empty field'
     }),
-    albumImageURL: Joi.string().uri().optional().messages({
-        'string.base': 'Album Image URL should be a type of text',
-        'string.empty': 'Album Image URL cannot be an empty field',
-        'string.uri': 'Album Image URL must be a valid URI'
-    }),
+   
     songName: Joi.string().optional().messages({
         'string.base': 'Song Name should be a type of text',
         'string.empty': 'Song Name cannot be an empty field'
@@ -45,11 +37,7 @@ const songValidationSchema = Joi.object({
         'string.empty': 'Artist Name cannot be an empty field',
         'any.required': 'Artist Name is required'
     }),
-    artistImageURL: Joi.string().required().messages({
-        'string.base': 'Artist Image URL should be a type of text',
-        'string.empty': 'Artist Image URL cannot be an empty field',
-        'any.required': 'Artist Image URL is required'
-    }),
+    
     albums: Joi.array().items(
         Joi.object({
             albumName: Joi.string().required().messages({
@@ -57,11 +45,7 @@ const songValidationSchema = Joi.object({
                 'string.empty': 'Album Name cannot be an empty field',
                 'any.required': 'Album Name is required'
             }),
-            albumImageURL: Joi.string().required().messages({
-                'string.base': 'Album Image URL should be a type of text',
-                'string.empty': 'Album Image URL cannot be an empty field',
-                'any.required': 'Album Image URL is required'
-            }),
+           
             songs: Joi.array().items(
                 Joi.object({
                     songName: Joi.string().required().messages({
@@ -79,7 +63,7 @@ const songValidationSchema = Joi.object({
                         'string.empty': 'Song URL cannot be an empty field',
                         'any.required': 'Song URL is required'
                     }),
-                    category: Joi.string().valid('Classical', 'Popular', 'Rock', 'Hip hop', 'Jazz', 'Electronic', 'Folk', 'Blues').required().messages({
+                    category: Joi.string().valid('Classical', 'Popular', 'Rock', 'Hip Hop', 'Jazz', 'Electronic', 'Folk', 'Blues').required().messages({
                         'any.required': 'Category is required',
                         'any.only': 'Category must be one of Classical, Popular, Rock, Hip hop, Jazz, Electronic, Folk, Blues'
                     })
@@ -139,7 +123,7 @@ exports.createSong = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
-exports. searchSongs = async (req, res) => {
+exports.searchSongs = async (req, res) => {
     const { query } = req.query;
   
     if (!query) {
@@ -369,30 +353,36 @@ exports.deleteSong = async (req, res) => {
     const songId = req.params.id;
 
     try {
-        // Find the song by song ID
-        let song = await Song.findOne({ "albums.songs._id": songId });
+       
+        let songDoc = await Song.findOne({ "albums.songs._id": songId });
 
-        if (!song) {
+        if (!songDoc) {
             return res.status(404).json({ message: 'Song not found' });
         }
 
-        // Find the album and the song within the album
-        const albumIndex = song.albums.findIndex(album => album.songs.some(song => song._id.toString() === songId));
+        
+        const albumIndex = songDoc.albums.findIndex(album => album.songs.some(song => song._id.toString() === songId));
         if (albumIndex === -1) {
             return res.status(404).json({ message: 'Album not found' });
         }
 
-        const songIndex = song.albums[albumIndex].songs.findIndex(song => song._id.toString() === songId);
+        const songIndex = songDoc.albums[albumIndex].songs.findIndex(song => song._id.toString() === songId);
         if (songIndex === -1) {
             return res.status(404).json({ message: 'Song not found' });
         }
 
-        // Remove the song from the album
-        song.albums[albumIndex].songs.splice(songIndex, 1);
+        
+        if (songDoc.albums[albumIndex].songs.length === 1) {
+            
+            await Song.findByIdAndDelete(songDoc._id);
+            return res.status(200).json({ success: true, message: 'Album with the only song deleted successfully' });
+        } else {
+            
+            songDoc.albums[albumIndex].songs.splice(songIndex, 1);
 
-        // Save the updated song document
-        await song.save();
-        res.status(200).json({ success: true, message: 'Song deleted successfully' });
+            await songDoc.save();
+            return res.status(200).json({ success: true, message: 'Song deleted successfully' });
+        }
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

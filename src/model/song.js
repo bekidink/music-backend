@@ -5,19 +5,13 @@ const songSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    artistImageURL: {
-        type: String,
-        required: true
-    },
+   
     albums: [{
         albumName: {
             type: String,
             required: true
         },
-        albumImageURL: {
-            type: String,
-            required: true
-        },
+       
         songs: [{
             songName: {
                 type: String,
@@ -34,7 +28,7 @@ const songSchema = new mongoose.Schema({
             category: {
                 type: String,
                 required: true,
-                enum: ['Classical', 'Popular', 'Rock','Hip hop','Jazz','Electronic','Folk','Blues'] // Define allowed categories here
+                enum: ['Classical', 'Popular', 'Rock','Hip Hop','Jazz','Electronic','Folk','Blues'] // Define allowed categories here
             }
         }]
     }]
