@@ -3,7 +3,9 @@ const app = express();
 const cors = require("cors");
 const connectDB = require('./config/db');
 
-app.use(cors());
+app.use(cors(
+  origin="https://addisfront.vercel.app/"
+));
 app.use(express.json());
 app.get("/", (req, res) => {
   return res.json("hi fronted");
